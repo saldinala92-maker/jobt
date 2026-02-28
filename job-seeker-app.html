@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WorkDrop — Job Seeker App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Epilogue:wght@300;400;500;600&family=Epilogue:ital@1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080e;
+    --card: #111119;
+    --card2: #18181f;
+    --border: rgba(255,255,255,0.06);
+    --lime: #c9ff4e;
+    --coral: #ff5c5c;
+    --sky: #5ce0ff;
+    --lavender: #a78bfa;
+    --text: #f2f2fa;
+    --sub: #9090a8;
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: #04040a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Epilogue', sans-serif;
+    overflow: hidden;
+  }
+
+  /* Phone shell */
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: var(--bg);
+    border-radius: 54px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08),
+      0 60px 120px rgba(0,0,0,0.9),
+      0 0 80px rgba(201,255,78,0.04);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Dynamic island */
+  .island {
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .island-camera {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 1.5px solid #2a2a2a;
+  }
+
+  .island-sensor {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #1a1e1a;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 59px;
+    padding: 14px 28px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .status-time {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .status-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 2px;
+  }
+
+  .status-icons svg { fill: var(--text); }
+
+  /* Scrollable content */
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: none;
+    padding-bottom: 90px;
+  }
+
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* Section: Header */
+  .app-header {
+    padding: 10px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-left {}
+
+  .header-greeting {
+    font-size: 12px;
+    color: var(--sub);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+
+  .header-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .header-name em {
+    font-style: normal;
+    color: var(--lime);
+  }
+
+  .header-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #c9ff4e 0%, #5ce0ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: #000;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .avatar-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 19px;
+    border: 2px solid var(--lime);
+    opacity: 0.5;
+  }
+
+  /* Search */
+  .search-wrap {
+    padding: 16px 24px 0;
+  }
+
+  .search-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .search-box svg { flex-shrink: 0; }
+
+  .search-box input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'Epilogue', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .search-box input::placeholder { color: var(--sub); }
+
+  .filter-btn {
+    width: 32px; height: 32px;
+    background: var(--lime);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Stats row */
+  .stats-row {
+    padding: 16px 24px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 12px;
+    position: relative;
+    overflow: hidden;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+
+  .stat-card:nth-child(1) { animation-delay: 0.05s; }
+  .stat-card:nth-child(2) { animation-delay: 0.1s; }
+  .stat-card:nth-child(3) { animation-delay: 0.15s; }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.9) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .stat-glow {
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    opacity: 0.18;
+    filter: blur(20px);
+  }
+
+  .stat-icon {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--sub);
+    font-weight: 400;
+    letter-spacing: 0.3px;
+  }
+
+  .stat-delta {
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* Section header */
+  .sec-header {
+    padding: 20px 24px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sec-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .sec-link {
+    font-size: 12px;
+    color: var(--lavender);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* Filter chips scroll */
+  .chips-scroll {
+    padding: 0 24px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chips-scroll::-webkit-scrollbar { display: none; }
+
+  .chip {
+    padding: 7px 16px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid var(--border);
+    color: var(--sub);
+    background: var(--card);
+    flex-shrink: 0;
+  }
+
+  .chip.active {
+    background: var(--lime);
+    color: #000;
+    border-color: var(--lime);
+  }
+
+  /* Job cards horizontal scroll */
+  .jobs-scroll {
+    padding: 14px 0 0 24px;
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .jobs-scroll::-webkit-scrollbar { display: none; }
+
+  .job-card {
+    width: 240px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 20px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+    animation: slideIn 0.5s cubic-bezier(0.4,0,0.2,1) both;
+  }
+
+  .job-card:last-child { margin-right: 24px; }
+
+  .job-card:nth-child(1) { animation-delay: 0.1s; }
+  .job-card:nth-child(2) { animation-delay: 0.2s; }
+  .job-card:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .job-card:active { transform: scale(0.97); }
+
+  .job-card.hot {
+    background: linear-gradient(145deg, #1c1a0d 0%, #111119 60%);
+    border-color: rgba(201,255,78,0.25);
+  }
+
+  .hot-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--lime);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  .job-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .company-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .job-co { font-size: 11px; color: var(--sub); margin-bottom: 2px; }
+
+  .job-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .job-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .jtag {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.05);
+    color: var(--sub);
+  }
+
+  .job-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .job-salary {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--lime);
+  }
+
+  .match-bubble {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(201,255,78,0.08);
+    border: 1px solid rgba(201,255,78,0.2);
+    border-radius: 10px;
+    padding: 5px 9px;
+  }
+
+  .match-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--lime);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .match-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--lime);
+  }
+
+  /* Application tracker */
+  .apps-list {
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .app-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    animation: fadeUp 0.4s ease both;
+    transition: background 0.2s;
+  }
+
+  .app-row:active { background: var(--card2); }
+
+  .app-row:nth-child(1) { animation-delay: 0.1s; }
+  .app-row:nth-child(2) { animation-delay: 0.18s; }
+  .app-row:nth-child(3) { animation-delay: 0.26s; }
+  .app-row:nth-child(4) { animation-delay: 0.34s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .app-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .app-info { flex: 1; min-width: 0; }
+
+  .app-role {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-co-name {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 2px;
+  }
+
+  .app-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .status-pill {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.3px;
+  }
+
+  .pill-lime { background: rgba(201,255,78,0.12); color: var(--lime); }
+  .pill-sky { background: rgba(92,224,255,0.1); color: var(--sky); }
+  .pill-lav { background: rgba(167,139,250,0.12); color: var(--lavender); }
+  .pill-coral { background: rgba(255,92,92,0.1); color: var(--coral); }
+
+  .app-date {
+    font-size: 10px;
+    color: var(--sub);
+  }
+
+  /* Profile strip */
+  .profile-strip {
+    margin: 0 24px;
+    background: var(--card2);
+    border: 1px solid rgba(201,255,78,0.15);
+    border-radius: 22px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-strip::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(201,255,78,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .pstrip-info { flex: 1; }
+
+  .pstrip-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .pstrip-role {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 2px;
+  }
+
+  .pstrip-bar-wrap {
+    margin-top: 10px;
+  }
+
+  .pstrip-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+
+  .pstrip-bar-label span { font-size: 10px; color: var(--sub); }
+  .pstrip-bar-label strong { font-size: 10px; font-family: 'Syne', sans-serif; color: var(--lime); }
+
+  .pstrip-bar-bg {
+    height: 4px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .pstrip-bar-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--lime), var(--sky));
+    border-radius: 99px;
+    animation: growBar 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards;
+  }
+
+  @keyframes growBar {
+    to { width: 78%; }
+  }
+
+  .open-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .open-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--lime);
+    box-shadow: 0 0 10px var(--lime);
+    animation: pulse 2s infinite;
+  }
+
+  .open-label {
+    font-size: 9px;
+    color: var(--lime);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(8,8,14,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 12px 24px calc(12px + var(--safe-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+  }
+
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    position: relative;
+    padding: 0 12px;
+  }
+
+  .nav-icon {
+    width: 28px; height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    color: var(--sub);
+    letter-spacing: 0.3px;
+  }
+
+  .nav-btn.active .nav-label { color: var(--lime); }
+
+  .nav-badge {
+    position: absolute;
+    top: -2px;
+    right: 8px;
+    width: 8px; height: 8px;
+    background: var(--coral);
+    border-radius: 50%;
+    border: 1.5px solid var(--bg);
+  }
+
+  /* Center FAB */
+  .nav-fab {
+    width: 52px; height: 52px;
+    border-radius: 18px;
+    background: var(--lime);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(201,255,78,0.35);
+    transition: transform 0.2s;
+    margin-top: -20px;
+  }
+
+  .nav-fab:active { transform: scale(0.93); }
+
+  /* Skills horizontal */
+  .skills-scroll {
+    padding: 0 24px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: wrap;
+  }
+
+  .skill-pill {
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    color: var(--lavender);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .skill-endorse {
+    background: var(--lavender);
+    color: #000;
+    width: 16px; height: 16px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 24px;
+  }
+
+  /* Notification strip */
+  .notif-strip {
+    margin: 0 24px;
+    background: rgba(92,224,255,0.06);
+    border: 1px solid rgba(92,224,255,0.15);
+    border-radius: 16px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+
+  .notif-icon {
+    width: 36px; height: 36px;
+    background: rgba(92,224,255,0.1);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .notif-text { flex: 1; }
+  .notif-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .notif-sub { font-size: 11px; color: var(--sub); margin-top: 1px; }
+
+  .notif-arrow {
+    color: var(--sky);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Phone frame -->
+<div class="phone">
+
+  <!-- Dynamic Island -->
+  <div class="island">
+    <div class="island-camera"></div>
+    <div class="island-sensor"></div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="status-icons">
+      <!-- Signal -->
+      <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="7" width="3" height="5" rx="1" fill="white"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="1" fill="white"/><rect x="9" y="2" width="3" height="10" rx="1" fill="white"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="white" opacity="0.3"/></svg>
+      <!-- Wifi -->
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5C8.828 9.5 9.5 10.172 9.5 11S8.828 12.5 8 12.5 6.5 11.828 6.5 11 7.172 9.5 8 9.5z" fill="white"/><path d="M4.2 7.3C5.2 6.3 6.5 5.7 8 5.7s2.8.6 3.8 1.6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M1.4 4.5C3.1 2.8 5.4 1.7 8 1.7s4.9 1.1 6.6 2.8" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/></svg>
+      <!-- Battery -->
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="3" stroke="white" stroke-width="1.2" fill="none" opacity="0.35"/><rect x="1.5" y="2.5" width="16" height="7" rx="2" fill="white"/><path d="M22.5 4.5v3c.8-.3 1.5-1 1.5-1.5s-.7-1.2-1.5-1.5z" fill="white" opacity="0.4"/></svg>
+    </div>
+  </div>
+
+  <!-- Scrollable screen -->
+  <div class="screen">
+
+    <!-- App Header -->
+    <div class="app-header">
+      <div class="header-left">
+        <div class="header-greeting">Good morning ☀️</div>
+        <div class="header-name">Alex <em>Johnson</em></div>
+      </div>
+      <div class="header-avatar">
+        AJ
+        <div class="avatar-ring"></div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9090a8" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Job title, company, keyword…">
+        <div class="filter-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+
+      <div class="stat-card">
+        <div class="stat-glow" style="background:var(--sky)"></div>
+        <div class="stat-icon">👁</div>
+        <div class="stat-val" style="color:var(--sky)">247</div>
+        <div class="stat-lbl">Profile Views</div>
+        <div class="stat-delta" style="color:var(--lime)">↑ 34%</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-glow" style="background:var(--lime)"></div>
+        <div class="stat-icon">📄</div>
+        <div class="stat-val" style="color:var(--lime)">12</div>
+        <div class="stat-lbl">Applied</div>
+        <div class="stat-delta" style="color:var(--sub)">3 pending</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-glow" style="background:var(--lavender)"></div>
+        <div class="stat-icon">💬</div>
+        <div class="stat-val" style="color:var(--lavender)">4</div>
+        <div class="stat-lbl">Messages</div>
+        <div class="stat-delta" style="color:var(--coral)">2 unread</div>
+      </div>
+
+    </div>
+
+    <!-- Notification strip -->
+    <div style="padding: 16px 0 0">
+      <div class="notif-strip">
+        <div class="notif-icon">🎉</div>
+        <div class="notif-text">
+          <div class="notif-title">Notion sent you an offer!</div>
+          <div class="notif-sub">Head of Design · Tap to review</div>
+        </div>
+        <div class="notif-arrow">›</div>
+      </div>
+    </div>
+
+    <!-- Profile strip -->
+    <div style="padding: 14px 0 0">
+      <div class="profile-strip">
+        <div class="open-badge">
+          <div class="open-dot"></div>
+          <div class="open-label">Open</div>
+        </div>
+        <div class="pstrip-info">
+          <div class="pstrip-name">Alex Johnson</div>
+          <div class="pstrip-role">Senior Product Designer</div>
+          <div class="pstrip-bar-wrap">
+            <div class="pstrip-bar-label">
+              <span>Profile strength</span>
+              <strong>78%</strong>
+            </div>
+            <div class="pstrip-bar-bg">
+              <div class="pstrip-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jobs section -->
+    <div class="sec-header">
+      <div class="sec-title">Matched for You</div>
+      <div class="sec-link">See all →</div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="chips-scroll">
+      <div class="chip active">All</div>
+      <div class="chip">Remote</div>
+      <div class="chip">Design</div>
+      <div class="chip">Senior</div>
+      <div class="chip">Startup</div>
+    </div>
+
+    <!-- Jobs horizontal scroll -->
+    <div class="jobs-scroll">
+
+      <!-- Job 1 hot -->
+      <div class="job-card hot">
+        <div class="hot-badge">HOT</div>
+        <div class="job-top">
+          <div class="company-icon" style="background:rgba(255,90,31,0.12)">🟠</div>
+          <div>
+            <div class="job-co">Stripe</div>
+            <div style="font-size:10px; color: var(--sub)">San Francisco</div>
+          </div>
+        </div>
+        <div class="job-title">Lead Product Designer</div>
+        <div class="job-tags">
+          <div class="jtag">🌍 Remote</div>
+          <div class="jtag">Full-time</div>
+          <div class="jtag">Senior</div>
+        </div>
+        <div class="job-bottom">
+          <div class="job-salary">$160–200k</div>
+          <div class="match-bubble">
+            <div class="match-dot"></div>
+            <div class="match-pct">96%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job 2 -->
+      <div class="job-card">
+        <div class="job-top">
+          <div class="company-icon" style="background:rgba(45,200,130,0.12)">🟢</div>
+          <div>
+            <div class="job-co">Linear</div>
+            <div style="font-size:10px; color: var(--sub)">New York</div>
+          </div>
+        </div>
+        <div class="job-title">Senior UX Designer</div>
+        <div class="job-tags">
+          <div class="jtag">🌍 Remote</div>
+          <div class="jtag">Full-time</div>
+        </div>
+        <div class="job-bottom">
+          <div class="job-salary">$140–175k</div>
+          <div class="match-bubble" style="background:rgba(167,139,250,0.08); border-color:rgba(167,139,250,0.2)">
+            <div class="match-dot" style="background:var(--lavender); box-shadow:none"></div>
+            <div class="match-pct" style="color:var(--lavender)">88%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job 3 -->
+      <div class="job-card">
+        <div class="job-top">
+          <div class="company-icon" style="background:rgba(92,224,255,0.1)">⚡</div>
+          <div>
+            <div class="job-co">Vercel</div>
+            <div style="font-size:10px; color: var(--sub)">Austin</div>
+          </div>
+        </div>
+        <div class="job-title">Design Systems Lead</div>
+        <div class="job-tags">
+          <div class="jtag">🏢 Hybrid</div>
+          <div class="jtag">Lead</div>
+        </div>
+        <div class="job-bottom">
+          <div class="job-salary" style="color:var(--sky)">$155–185k</div>
+          <div class="match-bubble" style="background:rgba(92,224,255,0.06); border-color:rgba(92,224,255,0.18)">
+            <div class="match-dot" style="background:var(--sky); box-shadow:none"></div>
+            <div class="match-pct" style="color:var(--sky)">81%</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Applications -->
+    <div class="sec-header">
+      <div class="sec-title">My Applications</div>
+      <div class="sec-link">View all →</div>
+    </div>
+
+    <div class="apps-list">
+
+      <div class="app-row">
+        <div class="app-logo" style="background:rgba(255,165,0,0.1)">🟠</div>
+        <div class="app-info">
+          <div class="app-role">Lead Product Designer</div>
+          <div class="app-co-name">Stripe</div>
+        </div>
+        <div class="app-meta">
+          <div class="status-pill pill-sky">REVIEW</div>
+          <div class="app-date">2 days ago</div>
+        </div>
+      </div>
+
+      <div class="app-row">
+        <div class="app-logo" style="background:rgba(45,200,130,0.1)">🟢</div>
+        <div class="app-info">
+          <div class="app-role">Senior UX Designer</div>
+          <div class="app-co-name">Linear</div>
+        </div>
+        <div class="app-meta">
+          <div class="status-pill pill-lav">INTERVIEW</div>
+          <div class="app-date">4 days ago</div>
+        </div>
+      </div>
+
+      <div class="app-row">
+        <div class="app-logo" style="background:rgba(92,224,255,0.1)">🔵</div>
+        <div class="app-info">
+          <div class="app-role">Head of Design</div>
+          <div class="app-co-name">Notion</div>
+        </div>
+        <div class="app-meta">
+          <div class="status-pill pill-lime">OFFER 🎉</div>
+          <div class="app-date">1 week ago</div>
+        </div>
+      </div>
+
+      <div class="app-row">
+        <div class="app-logo" style="background:rgba(255,92,92,0.08)">🔴</div>
+        <div class="app-info">
+          <div class="app-role">Design Director</div>
+          <div class="app-co-name">Figma</div>
+        </div>
+        <div class="app-meta">
+          <div class="status-pill pill-coral">DECLINED</div>
+          <div class="app-date">2 weeks ago</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Skills -->
+    <div class="sec-header">
+      <div class="sec-title">My Skills</div>
+      <div class="sec-link">Edit →</div>
+    </div>
+
+    <div class="skills-scroll">
+      <div class="skill-pill">Figma <div class="skill-endorse">12</div></div>
+      <div class="skill-pill">UX Research <div class="skill-endorse">9</div></div>
+      <div class="skill-pill">Design Systems <div class="skill-endorse">7</div></div>
+      <div class="skill-pill">Prototyping <div class="skill-endorse">5</div></div>
+      <div class="skill-pill">Framer</div>
+      <div class="skill-pill" style="background:rgba(255,255,255,0.03); border-color:var(--border); border-style:dashed; color:var(--sub)">+ Add</div>
+    </div>
+
+    <div style="height: 24px"></div>
+
+  </div><!-- /screen -->
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-btn active">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9ff4e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </div>
+      <div class="nav-label" style="color:var(--lime)">Home</div>
+    </div>
+
+    <div class="nav-btn">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9090a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      </div>
+      <div class="nav-label">Jobs</div>
+    </div>
+
+    <!-- FAB -->
+    <div class="nav-fab">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+
+    <div class="nav-btn" style="position:relative">
+      <div class="nav-badge"></div>
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9090a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="nav-label">Messages</div>
+    </div>
+
+    <div class="nav-btn">
+      <div class="nav-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9090a8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="nav-label">Profile</div>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+</body>
+</html>
